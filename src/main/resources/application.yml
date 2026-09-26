@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: txnguard
+  datasource:
+    url: jdbc:h2:mem:txnguard;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false        # a lazy load in the web layer is a bug, not a convenience
+    properties:
+      hibernate.jdbc.batch_size: 50
+
+server:
+  port: 8080
+  error:
+    include-message: never     # messages are surfaced deliberately via ProblemDetail
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+txnguard:
+  screening:
+    # Score at or above which a case is raised, and at or above which the
+    # authorisation is refused outright.
+    review-threshold: 40
+    decline-threshold: 75
+    # Multiple of the cardholder's median amount that counts as a deviation.
+    amount-deviation-multiple: 8.0
+    # Card-testing burst detection.
+    velocity-max-transactions: 5
+    velocity-window: PT10M
+    # Faster than a commercial jet, including airport time.
+    impossible-travel-speed-kmh: 900
+    new-account-days: 30
+    # Gambling, quasi-cash, money transfer, direct marketing.
+    high-risk-merchant-category-codes: [ "7995", "6051", "4829", "5967" ]
+
+logging:
+  level:
+    com.pinegate.txnguard: INFO
